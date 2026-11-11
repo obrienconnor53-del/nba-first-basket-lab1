@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NBA First Basket Lab · Free Auto Scanner</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0b1220;color:#e7eef8;font:15px system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1250px;margin:auto;padding:28px 18px}h1{font-size:30px;margin:0}h2{font-size:19px;margin:0 0 12px}p{line-height:1.5}.muted,small{color:#9fb0c7}.top{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;align-items:center}.panel{background:#152237;border:1px solid #30425d;border-radius:15px;padding:20px;margin:18px 0}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end}label{display:flex;flex-direction:column;gap:5px;color:#b9c9df;font-size:13px}input,button,select{font:inherit;background:#0d192b;border:1px solid #3d526d;border-radius:8px;color:#e7eef8;padding:10px}button{cursor:pointer;background:#2368a4;border:0;font-weight:650}button:disabled{opacity:.5;cursor:wait}.secondary{background:#263950}input[type=date]{min-width:160px}input[type=number]{width:110px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.stat{background:#0d192b;border-radius:10px;padding:14px}.stat strong{display:block;font-size:25px;margin:6px 0}.good{color:#66e2b0}.warn{color:#f6ce7d}.bad{color:#ff9696}.tag{display:inline-block;border:1px solid #4c607b;border-radius:99px;padding:4px 9px;font-size:12px;color:#c9d6e9}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:770px}th,td{text-align:left;border-bottom:1px solid #30425d;padding:10px 9px}th{font-size:12px;color:#a9bbd1}td{font-size:13px}.note{background:#202c3e;border-left:3px solid #f6ce7d;padding:13px;border-radius:6px}.match{border:1px solid #30425d;border-radius:10px;padding:13px;margin:10px 0}.match h3{margin:0 0 8px}.small{font-size:12px}.right{text-align:right}.bar{height:5px;background:#30425d;border-radius:5px;margin-top:5px}.fill{height:100%;background:#59a6e6;border-radius:5px}a{color:#90c7ff}
+</style></head><body><main>
+<div class="top"><div><h1>🏀 NBA First Basket Lab</h1><p class="muted">V7 · Opening possession research · Free automated game scanner · Probability + value research</p></div><span class="tag" id="mode">Not loaded</span></div>
+<div class="panel"><h2>Daily scanner</h2><div class="controls">
+<label>NBA game date (US Eastern)<input id="date" type="date"></label>
+<label>Historical depth per team, per season<select id="lookback"><option value="12">12 — quick test</option><option value="25" selected>25 — balanced</option><option value="50">50 — deeper, slower</option><option value="90">All available — slow on iPhone</option></select></label>
+<label>Minimum team games analysed<select id="minimum"><option value="3">3</option><option value="5" selected>5</option><option value="8">8</option></select></label>
+<button id="scan">Scan games automatically</button><button class="secondary" id="export">Export CSV</button>
+</div><p class="muted small" id="status">Click Scan. Data is fetched directly from ESPN's unofficial public endpoints; host this file on an HTTPS website to avoid local-file restrictions.</p>
+<div class="note small">V7 displays a top candidate per matchup and experimental EV calculations. <b>NO BET remains the default:</b> positive EV alone is not evidence of a reliable edge. Starting lineups and injuries are not automatically verified. Bookmaker prices must be entered manually. Free public feeds can fail or change without notice.</div></div>
+<div class="grid">
+<div class="stat"><small>Games on selected date</small><strong id="gamesCount">—</strong></div>
+<div class="stat"><small>Historical games analyzed</small><strong id="historyCount">—</strong></div>
+<div class="stat"><small>Verified betting picks</small><strong id="qualified">0</strong><small>Disabled until backtesting + lineup verification</small></div>
+<div class="stat"><small>Data source</small><strong style="font-size:19px">ESPN public feed</strong><small>Unofficial · availability varies</small></div>
+</div>
+<div class="panel"><h2>First-basket candidates and opening-play evidence</h2><p class="muted small">Automatically derives each team's historical first-scoring-player shares and first-scoring-team rate across two seasons. Player estimates are normalized across the matchup. Current and previous season counts are shown separately. A player's team-game sample is not their starts. These are provisional rankings, not verified win probabilities.</p><div id="matches"><p class="muted">No games scanned yet.</p></div></div>
+<div class="panel"><h2>Bet365 + Sportsbet odds comparison</h2><p class="muted small">Enter the First Basket Scorer <b>decimal odds</b> you see in each bookmaker. Prices are stored on this device only. EV = (experimental probability × decimal odds − 1) × 100. A positive EV is NOT a verified betting edge. The scanner attempts to include made free throws as well as field goals. Confirm the bookmaker market definition before comparing. These remain <b>unvalidated estimates, not betting edges</b>; bookmaker settlement rules must be checked independently.</p><div class="tablewrap"><table><thead><tr><th>Game</th><th>Player</th><th>Team</th><th>Model %*</th><th>Sample</th><th>Bet365 $</th><th>Sportsbet $</th><th>Best quoted price</th><th>Implied chance</th><th>EV %*</th><th>Verdict</th></tr></thead><tbody id="rows"><tr><td colspan="10" class="muted">Scan to populate</td></tr></tbody></table></div><p class="small muted">* Experimental two-season first-scoring and first-shot estimate, not a calibrated first-basket probability. EV is illustrative because model probabilities are uncalibrated; NO BET is the default. Decimal odds: $7.00 means a $7.00 total return per $1 stake if successful.</p></div>
+<div class="panel"><h2>What is automated — and what isn't</h2><div class="grid"><div><b class="good">Automated now</b><p class="small">Today's game schedule; historical game lookup; first made scoring-event detection; first-shot identification; opening-action text tags; opponent first-shot concessions proxy; player rankings; CSV export.</p></div><div><b class="warn">Not automated yet</b><p class="small">Confirmed starters; injury adjustments; actual tip-off player matchups; verified coach-designed set plays; automatic first-basket sportsbook odds; calibrated model training; verified betting recommendations.</p></div></div><p class="small muted">Historical model definition: earliest identifiable scoring play, including made free throws where ESPN reports them. First-shot and set-play tags are inferred from play-by-play descriptions, NOT verified coaching instructions. Opponent opening defence is a limited proxy based on the first conceded shot. The two seasons are displayed separately and current-season results receive more weight. We do not yet verify player starts or roster continuity; counts are team games analysed, not player starts. Missing games are excluded, not counted as misses. This is a heuristic research baseline, not a calibrated opening-possession simulation.</p></div>
+<footer class="muted small">Data courtesy of publicly accessible ESPN endpoints (unofficial and undocumented). Not affiliated with ESPN or the NBA. Never rely on unverified probabilities for wagering.</footer>
+</main><script>
+const $=id=>document.getElementById(id), base='https://site.api.espn.com/apis/site/v2/sports/basketball/nba/';
+const cache=new Map();let output=[], games=[], historicalCount=0, seasonInfo={};
+function easternDate(d=new Date()){const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);const v=Object.fromEntries(parts.map(x=>[x.type,x.value]));return `${v.year}-${v.month}-${v.day}`}
+function ymd(d){return d.toISOString().slice(0,10).replaceAll('-','')}
+function shift(date,n){let d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function percent(n){return (100*n).toFixed(1)+'%'}
+async function get(url){if(cache.has(url))return cache.get(url);let c=new AbortController(),t=setTimeout(()=>c.abort(),13000);try{let r=await fetch(url,{signal:c.signal});if(!r.ok)throw Error('HTTP '+r.status);let j=await r.json();cache.set(url,j);return j}finally{clearTimeout(t)}}
+const scoreboard=d=>get(base+'scoreboard?dates='+d+'&limit=100');
+const summary=id=>get(base+'summary?event='+encodeURIComponent(id));
+function teams(ev){let c=ev.competitions?.[0]?.competitors||[];return c.map(x=>({id:String(x.team?.id||''),name:x.team?.displayName||x.team?.name||'',abbr:x.team?.abbreviation||'',home:x.homeAway==='home'}))}
+function openingEvents(j){
+ const plays=Array.isArray(j.plays)?j.plays:[];
+ const ordered=plays.filter(p=>Number(p.period?.number||1)===1).slice().sort((a,b)=>{
+  const clock=p=>{const v=p.clock?.displayValue||p.clock||'12:00';const m=String(v).match(/(\d+):(\d+)/);return m?Number(m[1])*60+Number(m[2]):720};return clock(b)-clock(a);
+ });
+ const player=p=>{const a=p.athletes?.[0]?.athlete||p.athlete||p.participants?.[0]?.athlete||{};let name=a.displayName||a.fullName||'';
+  if(!name){const m=String(p.text||p.shortText||'').match(/^(.+?)\s+(?:makes|made|misses|missed)\s/i);if(m)name=m[1].replace(/^\d+\s+/,'').trim()}return name};
+ const tid=p=>String(p.team?.id||p.teamId||'');
+ const type=p=>{const t=String(p.text||p.shortText||'').toLowerCase();return /free throw/.test(t)?'FT':/3-pt|three point|3-point/.test(t)?'3PT':/layup|dunk|tip shot|putback/.test(t)?'RIM':/jump|hook|floater/.test(t)?'JUMPER':'OTHER'};
+ const made=p=>{const t=String(p.text||p.shortText||'').toLowerCase();return p.scoringPlay===true&&[1,2,3].includes(Number(p.scoreValue))||/\b(makes|made)\b/.test(t)&&/free throw|layup|dunk|jumper|jump shot|three point|3-pt|hook shot|floater|shot/.test(t)};
+ const shot=p=>{const t=String(p.text||p.shortText||'').toLowerCase();return !/free throw/.test(t)&&(/\b(makes|made|misses|missed)\b/.test(t)&&/layup|dunk|jumper|jump shot|three point|3-pt|hook shot|floater|shot|tip/.test(t))};
+ const tag=p=>{const t=String(p.text||p.shortText||'').toLowerCase();return /pick.and.roll|screen/.test(t)?'Screen / P&R mention':/cutting|cuts to|alley.oop/.test(t)?'Cut / lob mention':/post.up|post up|hook shot/.test(t)?'Post mention':/transition|fast break/.test(t)?'Transition mention':'Unclassified'};
+ let first=null;const firstShots={};
+ for(const p of ordered){const name=player(p),team=tid(p);if(!name||!team)continue;
+  if(shot(p)&&!firstShots[team])firstShots[team]={name,tid:team,type:type(p),tag:tag(p),made:made(p)};
+  if(!first&&made(p))first={name,tid:team,type:type(p)};
+ }
+ return {first,firstShots};
+}
+function seasonWindows(selected){
+ const y=Number(selected.slice(0,4)),m=Number(selected.slice(5,7));const startYear=m>=7?y:y-1;
+ const end=shift(selected,-1);
+ return [{id:'current',label:`${startYear}–${String(startYear+1).slice(-2)}`,start:`${startYear}-10-01`,end:ymd(end)},
+ {id:'previous',label:`${startYear-1}–${String(startYear).slice(-2)}`,start:`${startYear-1}-10-01`,end:`${startYear}-04-15`}];
+}
+function dateBlocks(start,end){
+ // ESPN scoreboard reliably accepts a single YYYYMMDD date; weekly date ranges can fail.
+ const out=[],d=new Date(start+'T12:00:00Z'),last=new Date(end.slice(0,4)+'-'+end.slice(4,6)+'-'+end.slice(6,8)+'T12:00:00Z');
+ while(d<=last){out.push(ymd(d));d.setUTCDate(d.getUTCDate()+1)}return out;
+}
+function limitWork(items,limit,worker){let i=0;return Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(i<items.length){let ix=i++;await worker(items[ix],ix)}}))}
+function aggregate(records){const t={};for(const r of records){
+ for(const x of r.teams){const k=x.id;if(!t[k])t[k]={name:x.name,abbr:x.abbr,games:0,firstTeam:0,players:{},shots:{},allowed:{},playTags:{},shotsSeen:0};t[k].games++}
+ if(r.first&&t[r.first.tid]){const z=t[r.first.tid];z.firstTeam++;z.players[r.first.name]=(z.players[r.first.name]||0)+1}
+ for(const [id,shot] of Object.entries(r.firstShots||{})){const z=t[id];if(z){z.shotsSeen++;z.shots[shot.name]=(z.shots[shot.name]||0)+1;const key=shot.name+'|'+shot.tag;z.playTags[key]=(z.playTags[key]||0)+1}
+ const opponent=r.teams.find(x=>x.id!==id);if(opponent&&t[opponent.id]){const d=t[opponent.id];d.allowed[shot.type]=(d.allowed[shot.type]||0)+1}}
+ }return t}
+function probabilities(ev,stats,minObs){const ts=teams(ev);if(ts.length!==2)return[];
+ const combined=ts.map(t=>{const c=stats.current[t.id]||{},p=stats.previous[t.id]||{};
+ const merge=k=>{const o={};for(const [name,n] of Object.entries(p[k]||{}))o[name]=(o[name]||0)+n*.4;for(const [name,n] of Object.entries(c[k]||{}))o[name]=(o[name]||0)+n;return o};
+ return {games:(c.games||0)+.4*(p.games||0),firstTeam:(c.firstTeam||0)+.4*(p.firstTeam||0),players:merge('players'),shots:merge('shots'),allowed:merge('allowed'),playTags:merge('playTags'),shotsSeen:(c.shotsSeen||0)+.4*(p.shotsSeen||0),current:c,previous:p};});
+ const rates=combined.map(s=>(s.firstTeam+3)/(s.games+6)),total=rates[0]+rates[1],arr=[];
+ ts.forEach((t,idx)=>{const s=combined[idx],opp=combined[1-idx],teamP=rates[idx]/total;
+ const names=new Set([...Object.keys(s.players),...Object.keys(s.shots)]);const nFirst=Object.values(s.players).reduce((a,b)=>a+b,0),nShots=Object.values(s.shots).reduce((a,b)=>a+b,0);
+ const raw=[];for(const name of names){const fc=s.players[name]||0,sc=s.shots[name]||0;
+ const firstShare=(fc+.3)/(nFirst+Math.max(5,names.size*.3));const shotShare=(sc+.3)/(nShots+Math.max(5,names.size*.3));
+ const tags=Object.entries(s.playTags).filter(([k])=>k.startsWith(name+'|')).sort((a,b)=>b[1]-a[1]);const topTag=tags[0]?.[0].split('|')[1]||'Unclassified';
+ // A tagged play is a textual hint, not a confirmed designed set play.
+ const defenseSamples=Object.values(opp.allowed).reduce((a,b)=>a+b,0);
+ const defenseInfo=defenseSamples>=minObs?'Opponent first-shot concessions observed':'Defensive sample unavailable';
+ const score=.55*shotShare+.45*firstShare;raw.push({name,fc,sc,score,topTag,defenseInfo,defenseSamples});}
+ const sum=raw.reduce((a,b)=>a+b.score,0);for(const r of raw){const p=teamP*(sum?r.score/sum:0);arr.push({game:ts.map(x=>x.abbr).join(' @ '),name:r.name,team:t.abbr,p,count:r.fc,shotCount:r.sc,teamGames:(s.current.games||0)+(s.previous.games||0),currentGames:s.current.games||0,previousGames:s.previous.games||0,currentCount:s.current.players?.[r.name]||0,previousCount:s.previous.players?.[r.name]||0,firstShotCurrent:s.current.shots?.[r.name]||0,firstShotPrevious:s.previous.shots?.[r.name]||0,topTag:r.topTag,defenseInfo:r.defenseInfo,defenseSamples:r.defenseSamples,weak:(s.current.games||0)+(s.previous.games||0)<minObs,gameId:ev.id})}
+ });return arr.sort((a,b)=>b.p-a.p)}
+function render(){const body=$('rows'),matches=$('matches');body.innerHTML='';matches.innerHTML='';if(!games.length){matches.innerHTML='<p class="muted">No NBA games found for this date.</p>';return}
+ for(const ev of games){const arr=output.filter(x=>x.gameId===ev.id),t=teams(ev),block=document.createElement('div');block.className='match';const top=arr[0];
+ block.innerHTML='<h3>'+esc(t.map(x=>x.name).join(' vs '))+'</h3>'+(top?'<span class="tag warn">TOP CANDIDATE · EXPERIMENTAL</span><p><b>'+esc(top.name)+'</b> · '+esc(top.team)+' · provisional '+percent(top.p)+'</p><p class="small muted">First shots: '+top.firstShotCurrent+' current + '+top.firstShotPrevious+' previous team games · First scores: '+top.currentCount+' current + '+top.previousCount+' previous · Opening-action text: '+esc(top.topTag)+' · '+esc(top.defenseInfo)+' ('+top.defenseSamples.toFixed(1)+' weighted observations) · Jump-ball matchup: NOT AVAILABLE · Confirmed starters: NOT AVAILABLE</p><b class="bad">NO BET — unvalidated model</b>':'<span class="tag warn">NO USABLE HISTORICAL DATA · NO BET</span>');matches.appendChild(block)}
+ for(const x of output){const tr=document.createElement('tr'),key=x.gameId+'|'+x.name;
+ tr.innerHTML=`<td>${esc(x.game)}</td><td><b>${esc(x.name)}</b><div class="small muted">First shot ${x.firstShotCurrent} current / ${x.firstShotPrevious} prior</div><div class="bar"><div class="fill" style="width:${Math.min(100,x.p*100)}%"></div></div></td><td>${esc(x.team)}</td><td>${percent(x.p)}<div class="small warn">Uncalibrated</div></td><td>${x.currentCount} / ${x.currentGames} current<br>${x.previousCount} / ${x.previousGames} previous</td><td></td><td></td><td class="best muted">—</td><td class="implied muted">—</td><td class="ev muted">—</td><td class="verdict"><b class="bad">NO BET</b></td>`;
+ const fields={};for(const [book,col] of [['Bet365',5],['Sportsbet',6]]){const inp=document.createElement('input');inp.type='number';inp.min='1.01';inp.step='0.01';inp.inputMode='decimal';inp.placeholder='e.g. 7.50';inp.style.width='105px';try{inp.value=localStorage.getItem('odds|'+book+'|'+key)||''}catch(e){}inp.oninput=()=>{try{localStorage.setItem('odds|'+book+'|'+key,inp.value)}catch(e){}refresh()};tr.children[col].appendChild(inp);fields[book]=inp}
+ function refresh(){const prices=Object.entries(fields).map(([book,inp])=>({book,price:Number(inp.value)})).filter(v=>v.price>1&&Number.isFinite(v.price)&&fields[v.book].value.trim()!=='').sort((a,b)=>b.price-a.price);const best=prices[0];tr.querySelector('.best').textContent=best?best.book+' $'+best.price.toFixed(2):'—';tr.querySelector('.implied').textContent=best?(100/best.price).toFixed(1)+'%':'—';const ev=best?(x.p*best.price-1)*100:null;const el=tr.querySelector('.ev');el.textContent=ev===null?'—':(ev>=0?'+':'')+ev.toFixed(1)+'%';el.className='ev '+(ev===null?'muted':ev>=0?'warn':'bad');tr.querySelector('.verdict').innerHTML='<b class="bad">NO BET</b><div class="small muted">'+(ev===null?'Enter odds':ev>0?'Positive theoretical EV; unverified':'Negative theoretical EV')+'</div>'}
+ refresh();body.appendChild(tr)}if(!output.length)body.innerHTML='<tr><td colspan="11">No usable history. Historical requests or play extraction failed. No pick or EV is available.</td></tr>'}
+async function scan(){if(location.protocol==='file:'){$('mode').textContent='Hosting required';$('status').textContent='Open the hosted GitHub Pages URL in Safari.';return}
+ const btn=$('scan');btn.disabled=true;$('mode').textContent='Loading';$('status').textContent='Loading schedule…';output=[];games=[];historicalCount=0;
+ try{
+ const selected=$('date').value||easternDate(),maxPerTeam=Number($('lookback').value),minObs=Number($('minimum').value);
+ const sb=await scoreboard(ymd(shift(selected,0)));games=(sb.events||[]).filter(e=>(e.competitions?.[0]?.competitors||[]).length===2);$('gamesCount').textContent=games.length;render();
+ const teamIds=new Set(games.flatMap(g=>teams(g).map(t=>t.id))),windows=seasonWindows(selected),stats={current:{},previous:{}},details=[];
+ for(const window of windows){
+  const blocks=dateBlocks(window.start,window.end),events=new Map();let failures=0,firstError="";
+  $('status').textContent=`Finding ${window.label} games (${blocks.length} daily schedules)…`;
+  await limitWork(blocks,5,async(block,i)=>{try{const s=await scoreboard(block);for(const e of s.events||[]){if(e.status?.type?.completed&&teams(e).some(t=>teamIds.has(t.id)))events.set(e.id,e)}}catch(err){failures++;if(!firstError)firstError=String(err.message||err)}if(i%15===0)$('status').textContent=`${window.label}: checked ${Math.min(i+1,blocks.length)}/${blocks.length} daily schedules`});
+  // Keep the most recent N games for each team. Avoid the old global 50-game cap.
+  const all=[...events.values()].sort((a,b)=>new Date(b.date)-new Date(a.date)),counts={},selectedEvents=[];
+  for(const e of all){const ids=teams(e).map(t=>t.id).filter(id=>teamIds.has(id));if(ids.some(id=>(counts[id]||0)<maxPerTeam)){selectedEvents.push(e);for(const id of ids)counts[id]=(counts[id]||0)+1}}
+  const records=[],errors=[];$('status').textContent=`${window.label}: analysing ${selectedEvents.length} completed games…`;
+  await limitWork(selectedEvents,3,async(e,i)=>{try{const j=await summary(e.id),o=openingEvents(j);if(o.first||Object.keys(o.firstShots).length)records.push({teams:teams(e),first:o.first,firstShots:o.firstShots});else errors.push(e.id)}catch(err){errors.push(e.id)}if(i%10===0)$('status').textContent=`${window.label}: analysed ${Math.min(i+1,selectedEvents.length)}/${selectedEvents.length} games`});
+  stats[window.id]=aggregate(records);historicalCount+=records.length;
+  details.push(`${window.label}: ${records.length}/${selectedEvents.length} games extracted, ${errors.length} skipped, ${failures} daily lookups failed${firstError?` (first error: ${firstError})`:""}`);
+ }
+ $('historyCount').textContent=historicalCount;
+ output=games.flatMap(g=>probabilities(g,stats,minObs)).sort((a,b)=>b.p-a.p);render();$('mode').textContent='V7 · Experimental candidates · NO BET';
+ $('status').textContent=`${games.length} upcoming games. ${details.join(' | ')}. Current-season weight 1.0, prior-season weight 0.4. These are team-game samples, NOT player starts. Top candidates shown; NO BET until validated.`;
+ }catch(e){$('mode').textContent='Data unavailable';$('status').textContent='Could not fetch NBA data: '+e.message+'. Please retry in Safari.';render()}finally{btn.disabled=false}}
+$('scan').onclick=scan;$('date').value=easternDate();scan();$('export').onclick=()=>{if(!output.length)return alert('Scan first');let rows=[['Game','Player','Team','Provisional probability','Current season first scores','Current season team games','Previous season first scores','Previous season team games','First shot current','First shot previous','Opening play text tag','Fair odds (unvalidated)','Status'],...output.map(x=>[x.game,x.name,x.team,x.p,x.currentCount,x.currentGames,x.previousCount,x.previousGames,x.firstShotCurrent,x.firstShotPrevious,x.topTag,1/x.p,'NO BET — unvalidated'])];let csv=rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='nba-first-basket-v7-research.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+</script></body></html>
